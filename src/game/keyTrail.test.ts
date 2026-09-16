@@ -16,6 +16,8 @@ describe('keyTrail', () => {
     expect(formatKeyLabel(' ')).toBe('␣')
     expect(formatKeyLabel('Escape')).toBe('esc')
     expect(formatKeyLabel('Enter')).toBe('↵')
+    expect(formatKeyLabel('Meta')).toBe('⌘')
+    expect(formatKeyLabel('Alt')).toBe('alt')
     expect(formatKeyLabel('ArrowUp')).toBe('up')
     expect(formatKeyLabel('Backspace')).toBe('⌫')
   })

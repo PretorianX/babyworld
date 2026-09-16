@@ -16,18 +16,15 @@ import {
   type KeyTrailEntry,
 } from '../game/keyTrail'
 import { createLeaveGuard, feedLeaveGuard, type LeaveGuardState } from '../game/leaveGuard'
+import {
+  cancelTrappedKeyEvent,
+  shouldTrapSmashKey,
+} from '../game/smashKeyBlock'
 import { playKeySound, playPointerSound } from '../game/soundEngine'
 
 type SmashSurfaceProps = {
   onLeave: () => void
   glyphMode: GlyphMode
-}
-
-function cancelEscapeEvent(event: KeyboardEvent): void {
-  if (event.key !== 'Escape') return
-  event.preventDefault()
-  event.stopPropagation()
-  event.stopImmediatePropagation()
 }
 
 export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
@@ -108,8 +105,8 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        cancelEscapeEvent(event)
+      if (shouldTrapSmashKey(event)) {
+        cancelTrappedKeyEvent(event)
         if (!event.repeat) recordTrail(event.key)
         return
       }
@@ -139,7 +136,9 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
     }
 
     const onKeyUp = (event: KeyboardEvent) => {
-      cancelEscapeEvent(event)
+      if (shouldTrapSmashKey(event)) {
+        cancelTrappedKeyEvent(event)
+      }
     }
 
     const onPointerDown = (event: PointerEvent) => {

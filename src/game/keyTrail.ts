@@ -13,10 +13,14 @@ export function formatKeyLabel(key: string): string {
   if (key === 'Enter') return '↵'
   if (key === 'Tab') return '⇥'
   if (key === 'Backspace') return '⌫'
+  if (key === 'Meta' || key === 'OS' || key === 'Super') return '⌘'
+  if (key === 'Alt') return 'alt'
+  if (key === 'Control') return 'ctrl'
   if (key === 'ArrowUp') return 'up'
   if (key === 'ArrowDown') return 'down'
   if (key === 'ArrowLeft') return 'left'
   if (key === 'ArrowRight') return 'right'
+  if (key.startsWith('Browser')) return key.slice(7).toLowerCase() || 'nav'
   if (key.length === 1) return key
   return key.length > 10 ? key.slice(0, 10) : key
 }
