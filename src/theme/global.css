@@ -194,6 +194,48 @@ button {
   touch-action: none;
 }
 
+.key-trail {
+  position: fixed;
+  right: max(0.85rem, env(safe-area-inset-right));
+  bottom: calc(1.85rem + env(safe-area-inset-bottom));
+  z-index: 5;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 0.28rem;
+  pointer-events: none;
+  max-height: 42vh;
+  overflow: hidden;
+}
+
+.key-trail__item {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: rgba(227, 242, 253, 0.62);
+  text-shadow: 0 1px 8px rgba(5, 5, 5, 0.45);
+  animation-name: key-trail-fade;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+.leave-hint {
+  position: fixed;
+  right: max(0.85rem, env(safe-area-inset-right));
+  bottom: max(0.55rem, env(safe-area-inset-bottom));
+  z-index: 5;
+  margin: 0;
+  pointer-events: none;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: rgba(197, 212, 227, 0.26);
+  user-select: none;
+}
+
 body.smash-active {
   overflow: hidden;
   overscroll-behavior: none;
@@ -233,6 +275,21 @@ body.smash-active {
   }
 }
 
+@keyframes key-trail-fade {
+  0% {
+    opacity: 0.85;
+    transform: translateY(6px);
+  }
+  18% {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .start-gate__glow,
   .start-gate__content,
@@ -243,6 +300,11 @@ body.smash-active {
   .start-gate__cta,
   .start-gate__mode {
     transition: none;
+  }
+
+  .key-trail__item {
+    animation: none;
+    opacity: 0.55;
   }
 }
 

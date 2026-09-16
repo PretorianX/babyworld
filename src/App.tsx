@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { SmashSurface } from './components/SmashSurface'
 import { StartGate } from './components/StartGate'
 import {
@@ -33,6 +33,7 @@ export default function App() {
   const [mode, setMode] = useState<AppMode>('gate')
   const [fullscreenDenied, setFullscreenDenied] = useState(false)
   const [glyphMode, setGlyphMode] = useState<GlyphMode>(DEFAULT_GLYPH_MODE)
+  const leavingRef = useRef(false)
 
   useEffect(() => {
     if (mode !== 'smash') return
@@ -40,7 +41,13 @@ export default function App() {
     document.body.classList.add('smash-active')
 
     const onFullscreenChange = () => {
-      // Display-only: never return to gate when native fullscreen ends.
+      if (leavingRef.current) return
+      if (document.fullscreenElement) return
+      // Kids mash Esc; browsers may still drop native fullscreen — reclaim it.
+      void requestFullscreen().then((result) => {
+        if (leavingRef.current) return
+        if (result === 'denied') setFullscreenDenied(true)
+      })
     }
 
     document.addEventListener('fullscreenchange', onFullscreenChange)
@@ -51,6 +58,7 @@ export default function App() {
   }, [mode])
 
   const enterSmash = useCallback(() => {
+    leavingRef.current = false
     void resumeAudio()
     void requestFullscreen().then((result) => {
       if (result === 'denied') {
@@ -61,9 +69,10 @@ export default function App() {
   }, [])
 
   const leaveSmash = useCallback(() => {
-    void exitFullscreenQuietly()
+    leavingRef.current = true
     setFullscreenDenied(false)
     setMode('gate')
+    void exitFullscreenQuietly()
   }, [])
 
   const onCycleGlyphMode = useCallback(() => {

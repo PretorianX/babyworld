@@ -48,6 +48,19 @@ describe('leaveGuard', () => {
     expect(control.state.buffer).toBe('l')
   })
 
+  it('ignores Escape so mashed Esc never unlocks smash', () => {
+    let state = createLeaveGuard()
+    state = feedLeaveGuard(state, 'l', 1).state
+    state = feedLeaveGuard(state, 'e', 2).state
+    const esc = feedLeaveGuard(state, 'Escape', 3)
+    expect(esc.matched).toBe(false)
+    expect(esc.state.buffer).toBe('le')
+    state = esc.state
+    state = feedLeaveGuard(state, 'a', 4).state
+    state = feedLeaveGuard(state, 'v', 5).state
+    expect(feedLeaveGuard(state, 'e', 6).matched).toBe(true)
+  })
+
   it('does not unlock early on a partial prefix', () => {
     let state = createLeaveGuard()
     for (const [i, char] of [...LEAVE_SEQUENCE.slice(0, -1)].entries()) {

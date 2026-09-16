@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   MAX_DPR,
   createCanvasEngine,
@@ -9,6 +9,12 @@ import {
   type CanvasEngine,
 } from '../game/canvasEngine'
 import type { GlyphMode } from '../game/glyphMode'
+import {
+  KEY_TRAIL_TTL_MS,
+  pruneKeyTrail,
+  pushKeyTrail,
+  type KeyTrailEntry,
+} from '../game/keyTrail'
 import { createLeaveGuard, feedLeaveGuard, type LeaveGuardState } from '../game/leaveGuard'
 import { playKeySound, playPointerSound } from '../game/soundEngine'
 
@@ -17,11 +23,20 @@ type SmashSurfaceProps = {
   glyphMode: GlyphMode
 }
 
+function cancelEscapeEvent(event: KeyboardEvent): void {
+  if (event.key !== 'Escape') return
+  event.preventDefault()
+  event.stopPropagation()
+  event.stopImmediatePropagation()
+}
+
 export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const engineRef = useRef<CanvasEngine>(createCanvasEngine(1, 1, glyphMode))
   const leaveRef = useRef<LeaveGuardState>(createLeaveGuard())
   const onLeaveRef = useRef(onLeave)
+  const trailIdRef = useRef(1)
+  const [trail, setTrail] = useState<KeyTrailEntry[]>([])
 
   useEffect(() => {
     onLeaveRef.current = onLeave
@@ -34,6 +49,8 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
     if (!ctx) return
 
     leaveRef.current = createLeaveGuard()
+    trailIdRef.current = 1
+    setTrail([])
     engineRef.current = createCanvasEngine(window.innerWidth, window.innerHeight, glyphMode)
 
     const fit = () => {
@@ -63,6 +80,11 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
     }
     frame = requestAnimationFrame(loop)
 
+    const pruneTimer = window.setInterval(() => {
+      const now = performance.now()
+      setTrail((current) => pruneKeyTrail(current, now))
+    }, 200)
+
     const randomStagePoint = () => {
       const { width, height } = engineRef.current
       return {
@@ -71,9 +93,24 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
       }
     }
 
+    const recordTrail = (key: string) => {
+      const now = performance.now()
+      setTrail((current) => {
+        const pushed = pushKeyTrail(
+          pruneKeyTrail(current, now),
+          key,
+          now,
+          trailIdRef.current,
+        )
+        trailIdRef.current = pushed.nextId
+        return pushed.entries
+      })
+    }
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        // Native fullscreen may end; app state stays in smash until leave.
+        cancelEscapeEvent(event)
+        if (!event.repeat) recordTrail(event.key)
         return
       }
 
@@ -82,6 +119,7 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
       const point = randomStagePoint()
       engineRef.current = smashEngine(engineRef.current, point.x, point.y, event.key)
       playKeySound(event.key)
+      if (!event.repeat) recordTrail(event.key)
 
       const isUnmodifiedLetter =
         !event.repeat &&
@@ -100,6 +138,10 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
       }
     }
 
+    const onKeyUp = (event: KeyboardEvent) => {
+      cancelEscapeEvent(event)
+    }
+
     const onPointerDown = (event: PointerEvent) => {
       event.preventDefault()
       const rect = canvas.getBoundingClientRect()
@@ -112,24 +154,41 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
     const blockContext = (event: Event) => event.preventDefault()
 
     window.addEventListener('keydown', onKeyDown, true)
+    window.addEventListener('keyup', onKeyUp, true)
     canvas.addEventListener('pointerdown', onPointerDown)
     canvas.addEventListener('contextmenu', blockContext)
 
     return () => {
       cancelAnimationFrame(frame)
+      window.clearInterval(pruneTimer)
       observer.disconnect()
       window.removeEventListener('keydown', onKeyDown, true)
+      window.removeEventListener('keyup', onKeyUp, true)
       canvas.removeEventListener('pointerdown', onPointerDown)
       canvas.removeEventListener('contextmenu', blockContext)
     }
   }, [glyphMode])
 
   return (
-    <canvas
-      ref={canvasRef}
-      id="stage"
-      className="smash-surface"
-      aria-label="BabyWorld smash stage"
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        id="stage"
+        className="smash-surface"
+        aria-label="BabyWorld smash stage"
+      />
+      <div className="key-trail" aria-hidden="true">
+        {trail.map((entry) => (
+          <span
+            key={entry.id}
+            className="key-trail__item"
+            style={{ animationDuration: `${KEY_TRAIL_TTL_MS}ms` }}
+          >
+            {entry.label}
+          </span>
+        ))}
+      </div>
+      <p className="leave-hint">type leave to exit</p>
+    </>
   )
 }
