@@ -1,0 +1,203 @@
+@import './tokens.css';
+
+:root {
+  color: var(--duck2-ink);
+  background: var(--duck2-bg);
+  font-family: var(--font-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  background: var(--duck2-bg);
+}
+
+button {
+  font: inherit;
+}
+
+.start-gate {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1.25rem;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(247, 148, 29, 0.28), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 80%, rgba(255, 222, 89, 0.18), transparent 50%),
+    linear-gradient(160deg, var(--duck2-bg) 0%, var(--duck2-surface) 55%, var(--duck2-bg) 100%);
+  color: var(--duck2-ink);
+}
+
+.start-gate__glow {
+  position: absolute;
+  inset: auto auto 12% 50%;
+  width: min(520px, 90vw);
+  height: min(520px, 90vw);
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(247, 148, 29, 0.35), transparent 70%);
+  filter: blur(8px);
+  animation: gate-pulse 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.start-gate__content {
+  position: relative;
+  z-index: 1;
+  width: min(560px, 100%);
+  text-align: center;
+  animation: gate-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.start-gate__eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--duck-yellow);
+}
+
+.start-gate__brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(3.4rem, 12vw, 5.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--duck-orange);
+  text-shadow: 0 8px 30px rgba(247, 148, 29, 0.35);
+  animation: gate-brand 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.start-gate__brand-accent {
+  color: var(--duck-yellow);
+}
+
+.start-gate__tagline {
+  margin: 1.25rem auto 2rem;
+  max-width: 34ch;
+  font-size: clamp(1rem, 2.6vw, 1.15rem);
+  line-height: 1.55;
+  color: var(--duck2-muted);
+}
+
+.start-gate__tagline strong {
+  color: var(--duck-yellow);
+  font-weight: 700;
+}
+
+.start-gate__cta {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.95rem 2.1rem;
+  border-radius: var(--radius-pill);
+  background: var(--duck-orange);
+  color: var(--duck2-bg);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 28px rgba(247, 148, 29, 0.35);
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.start-gate__cta:hover {
+  background: var(--duck-yellow);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 32px rgba(255, 222, 89, 0.3);
+}
+
+.start-gate__cta:focus-visible {
+  outline: 3px solid var(--duck-orange);
+  outline-offset: 4px;
+}
+
+.start-gate__cta:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.smash-shell {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--duck2-bg);
+  cursor: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.smash-surface {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: none;
+  touch-action: none;
+}
+
+body.smash-active {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+@keyframes gate-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gate-brand {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes gate-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateX(-50%) scale(0.96);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+@media (max-width: 520px) {
+  .start-gate {
+    place-items: end center;
+    padding-bottom: 18vh;
+  }
+}

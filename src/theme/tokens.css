@@ -1,0 +1,13 @@
+:root {
+  --duck-orange: #f7941d;
+  --duck-yellow: #ffde59;
+  --duck-accent: #ffcc00;
+  --duck2-bg: #0d1b2a;
+  --duck2-surface: #1b263b;
+  --duck2-ink: #e3f2fd;
+  --duck2-muted: #c5d4e3;
+  --radius-card: 12px;
+  --radius-pill: 999px;
+  --font-display: 'Nunito', 'Noto Sans', sans-serif;
+  --font-body: 'Noto Sans', 'Nunito', sans-serif;
+}
