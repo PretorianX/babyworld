@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { SmashSurface } from './components/SmashSurface'
 import { StartGate } from './components/StartGate'
 import { DEFAULT_GLYPH_MODE } from './game/glyphMode'
+import { lockSmashKeys, unlockSmashKeys } from './game/keyboardLock'
 import { resumeAudio } from './game/soundEngine'
 
 export type AppMode = 'gate' | 'smash'
@@ -25,6 +26,12 @@ async function exitFullscreenQuietly(): Promise<void> {
   }
 }
 
+/**
+ * Enter immersive smash: CSS shell always covers the viewport; native
+ * fullscreen is an enhancement. Keyboard Lock (Chromium) holds Esc so the
+ * browser never drops fullscreen — we do not reclaim via fullscreenchange
+ * (that flicker gap is the bug).
+ */
 export default function App() {
   const [mode, setMode] = useState<AppMode>('gate')
   const [fullscreenDenied, setFullscreenDenied] = useState(false)
@@ -34,37 +41,32 @@ export default function App() {
     if (mode !== 'smash') return
 
     document.body.classList.add('smash-active')
+    document.documentElement.classList.add('smash-active')
 
-    const onFullscreenChange = () => {
-      if (leavingRef.current) return
-      if (document.fullscreenElement) return
-      // Kids mash Esc; browsers may still drop native fullscreen — reclaim it.
-      void requestFullscreen().then((result) => {
-        if (leavingRef.current) return
-        if (result === 'denied') setFullscreenDenied(true)
-      })
-    }
-
-    document.addEventListener('fullscreenchange', onFullscreenChange)
     return () => {
       document.body.classList.remove('smash-active')
-      document.removeEventListener('fullscreenchange', onFullscreenChange)
+      document.documentElement.classList.remove('smash-active')
     }
   }, [mode])
 
   const enterSmash = useCallback(() => {
     leavingRef.current = false
     void resumeAudio()
-    void requestFullscreen().then((result) => {
+    // Mount CSS immersive shell immediately — never wait on fullscreen.
+    setMode('smash')
+    void requestFullscreen().then(async (result) => {
+      if (leavingRef.current) return
       if (result === 'denied') {
         setFullscreenDenied(true)
       }
+      // Keyboard Lock requires a user gesture + (typically) fullscreen in Chromium.
+      await lockSmashKeys()
     })
-    setMode('smash')
   }, [])
 
   const leaveSmash = useCallback(() => {
     leavingRef.current = true
+    unlockSmashKeys()
     setFullscreenDenied(false)
     setMode('gate')
     void exitFullscreenQuietly()
@@ -72,7 +74,11 @@ export default function App() {
 
   if (mode === 'smash') {
     return (
-      <div className="smash-shell" data-fullscreen-denied={fullscreenDenied ? 'true' : 'false'}>
+      <div
+        className="smash-shell"
+        data-fullscreen-denied={fullscreenDenied ? 'true' : 'false'}
+        data-immersive="css"
+      >
         <SmashSurface onLeave={leaveSmash} glyphMode={DEFAULT_GLYPH_MODE} />
       </div>
     )

@@ -59,4 +59,13 @@ describe('exit invariant helpers', () => {
     })()
     expect(modeAfterDenied).toBe('smash')
   })
+
+  it('does not use fullscreen reclaim as the Esc strategy', async () => {
+    const { lockSmashKeys, supportsKeyboardLock } = await import('./keyboardLock')
+    // Primary Esc strategy is Keyboard Lock (Chromium) + CSS immersive shell.
+    // App no longer re-requests fullscreen on fullscreenchange for Esc.
+    expect(typeof lockSmashKeys).toBe('function')
+    expect(typeof supportsKeyboardLock).toBe('function')
+    expect(supportsKeyboardLock({})).toBe(false)
+  })
 })

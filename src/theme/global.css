@@ -160,17 +160,23 @@ button {
   animation: none;
 }
 
+/* CSS immersive lock-in: covers the window even if native fullscreen drops.
+   Never blank the stage during a fullscreen transition — kids must not see
+   browser chrome / desktop through a reclaim gap. */
 .smash-shell {
   position: fixed;
   inset: 0;
   width: 100%;
   height: 100dvh;
+  height: 100vh;
+  z-index: 2147483647;
   overflow: hidden;
   background: #050505;
   cursor: none;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+  isolation: isolate;
 }
 
 .smash-surface {
@@ -223,9 +229,20 @@ button {
   user-select: none;
 }
 
+html.smash-active,
 body.smash-active {
   overflow: hidden;
   overscroll-behavior: none;
+  background: #050505;
+  /* Keep painted coverage if native fullscreen ends unexpectedly. */
+  min-height: 100%;
+  height: 100%;
+}
+
+html.smash-active #root {
+  min-height: 100%;
+  height: 100%;
+  background: #050505;
 }
 
 @keyframes gate-rise {

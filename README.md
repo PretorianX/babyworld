@@ -22,6 +22,7 @@ docker compose down
 - Mash the keyboard or tap the screen for glyphs, particles, and silly tones.
 - Type **leave** (letters within about 4 seconds) to return to the start gate.
 - Escape and common browser/OS exit chords are cancelled in-page when possible; only `leave` returns to the gate.
+- On Chromium, smash uses the **Keyboard Lock API** (`navigator.keyboard.lock`) so Esc does not exit native fullscreen. Other browsers fall back to a fixed full-viewport CSS shell (native fullscreen is optional).
 
 Ambient backdrop is a calm MailDuck-colored particle network (navy field, orange/yellow links) — no full-screen palette strobing. Smash glyphs default to mixed letters + emoji.
 
