@@ -15,15 +15,19 @@ export type KeyboardLockNavigator = {
   keyboard?: KeyboardLockApi
 }
 
-/** Codes passed to Keyboard.lock — Escape is the fullscreen-exit key. */
+/**
+ * Codes passed to Keyboard.lock — Escape is the fullscreen-exit key.
+ *
+ * Every entry MUST be a valid UI Events `code` value: Chromium rejects the
+ * entire lock() call with InvalidAccessError when ANY entry is invalid
+ * (legacy 'OSLeft'/'OSRight' did that and silently disabled the Esc lock).
+ */
 export const SMASH_KEYBOARD_LOCK_CODES = [
   'Escape',
   'F11',
   'F12',
   'MetaLeft',
   'MetaRight',
-  'OSLeft',
-  'OSRight',
   'ContextMenu',
   'BrowserBack',
   'BrowserForward',

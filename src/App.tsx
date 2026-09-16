@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SmashSurface } from './components/SmashSurface'
 import { StartGate } from './components/StartGate'
+import {
+  onSmashFullscreenChange,
+  shouldReclaimOnGesture,
+} from './game/fullscreenGuard'
 import { DEFAULT_GLYPH_MODE } from './game/glyphMode'
 import { lockSmashKeys, unlockSmashKeys } from './game/keyboardLock'
 import { resumeAudio } from './game/soundEngine'
@@ -28,9 +32,11 @@ async function exitFullscreenQuietly(): Promise<void> {
 
 /**
  * Enter immersive smash: CSS shell always covers the viewport; native
- * fullscreen is an enhancement. Keyboard Lock (Chromium) holds Esc so the
- * browser never drops fullscreen — we do not reclaim via fullscreenchange
- * (that flicker gap is the bug).
+ * fullscreen is an enhancement. Keyboard Lock (Chromium) holds single Esc
+ * presses while fullscreen. When fullscreen is lost anyway (Safari has no
+ * Keyboard Lock; Chromium press-and-hold Esc always exits), we reclaim it —
+ * immediately in the fullscreenchange handler when the browser still has
+ * transient activation, otherwise on the next key/pointer gesture.
  */
 export default function App() {
   const [mode, setMode] = useState<AppMode>('gate')
@@ -48,6 +54,40 @@ export default function App() {
       document.documentElement.classList.remove('smash-active')
     }
   }, [mode])
+
+  const reclaimFullscreen = useCallback(() => {
+    const isFullscreen = Boolean(document.fullscreenElement)
+    if (!shouldReclaimOnGesture({ isFullscreen, leaving: leavingRef.current })) {
+      return
+    }
+    void requestFullscreen().then(async (result) => {
+      if (leavingRef.current) return
+      setFullscreenDenied(result === 'denied')
+      if (result === 'ok') await lockSmashKeys()
+    })
+  }, [])
+
+  useEffect(() => {
+    if (mode !== 'smash') return
+
+    const onFullscreenChange = () => {
+      const action = onSmashFullscreenChange({
+        isFullscreen: Boolean(document.fullscreenElement),
+        leaving: leavingRef.current,
+      })
+      if (action === 'relock') {
+        // Chromium only honors the Esc lock while fullscreen — re-engage on
+        // every entry so the lock survives fullscreen round-trips.
+        void lockSmashKeys()
+      } else if (action === 'reclaim') {
+        reclaimFullscreen()
+      }
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    return () =>
+      document.removeEventListener('fullscreenchange', onFullscreenChange)
+  }, [mode, reclaimFullscreen])
 
   const enterSmash = useCallback(() => {
     leavingRef.current = false
@@ -79,7 +119,11 @@ export default function App() {
         data-fullscreen-denied={fullscreenDenied ? 'true' : 'false'}
         data-immersive="css"
       >
-        <SmashSurface onLeave={leaveSmash} glyphMode={DEFAULT_GLYPH_MODE} />
+        <SmashSurface
+          onLeave={leaveSmash}
+          onReclaim={reclaimFullscreen}
+          glyphMode={DEFAULT_GLYPH_MODE}
+        />
       </div>
     )
   }

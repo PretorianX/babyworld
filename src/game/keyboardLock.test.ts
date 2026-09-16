@@ -13,6 +13,29 @@ describe('keyboardLock', () => {
     expect(SMASH_KEYBOARD_LOCK_CODES).toContain('F11')
   })
 
+  it('contains only valid UI Events codes (invalid ones poison the whole lock call)', () => {
+    // Chrome rejects the ENTIRE lock() with InvalidAccessError if any code is
+    // not in the UI Events code registry. Legacy 'OSLeft'/'OSRight' did exactly
+    // that and silently disabled the Esc lock (the "Esc minimizes window" bug).
+    const validCodes = new Set([
+      'Escape',
+      'F11',
+      'F12',
+      'MetaLeft',
+      'MetaRight',
+      'ContextMenu',
+      'BrowserBack',
+      'BrowserForward',
+      'BrowserHome',
+      'BrowserRefresh',
+    ])
+    for (const code of SMASH_KEYBOARD_LOCK_CODES) {
+      expect(validCodes.has(code), `invalid Keyboard Lock code: ${code}`).toBe(true)
+    }
+    expect(SMASH_KEYBOARD_LOCK_CODES).not.toContain('OSLeft')
+    expect(SMASH_KEYBOARD_LOCK_CODES).not.toContain('OSRight')
+  })
+
   it('detects missing Keyboard Lock API as unsupported', () => {
     expect(supportsKeyboardLock({})).toBe(false)
     expect(supportsKeyboardLock({ keyboard: undefined })).toBe(false)

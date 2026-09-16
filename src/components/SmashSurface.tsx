@@ -24,20 +24,24 @@ import { playKeySound, playPointerSound } from '../game/soundEngine'
 
 type SmashSurfaceProps = {
   onLeave: () => void
+  /** Re-enter fullscreen from this user gesture when it was lost (Esc). */
+  onReclaim: () => void
   glyphMode: GlyphMode
 }
 
-export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
+export function SmashSurface({ onLeave, onReclaim, glyphMode }: SmashSurfaceProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const engineRef = useRef<CanvasEngine>(createCanvasEngine(1, 1, glyphMode))
   const leaveRef = useRef<LeaveGuardState>(createLeaveGuard())
   const onLeaveRef = useRef(onLeave)
+  const onReclaimRef = useRef(onReclaim)
   const trailIdRef = useRef(1)
   const [trail, setTrail] = useState<KeyTrailEntry[]>([])
 
   useEffect(() => {
     onLeaveRef.current = onLeave
-  }, [onLeave])
+    onReclaimRef.current = onReclaim
+  }, [onLeave, onReclaim])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -105,6 +109,10 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
+      // Every keydown is a user gesture — use it to restore fullscreen when a
+      // browser without Keyboard Lock (Safari) dropped it on Esc.
+      onReclaimRef.current()
+
       if (shouldTrapSmashKey(event)) {
         cancelTrappedKeyEvent(event)
         if (!event.repeat) recordTrail(event.key)
@@ -142,6 +150,7 @@ export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
     }
 
     const onPointerDown = (event: PointerEvent) => {
+      onReclaimRef.current()
       event.preventDefault()
       const rect = canvas.getBoundingClientRect()
       const x = event.clientX - rect.left
