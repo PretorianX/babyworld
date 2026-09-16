@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SmashSurface } from './components/SmashSurface'
 import { StartGate } from './components/StartGate'
-import {
-  DEFAULT_GLYPH_MODE,
-  cycleGlyphMode,
-  type GlyphMode,
-} from './game/glyphMode'
+import { DEFAULT_GLYPH_MODE } from './game/glyphMode'
 import { resumeAudio } from './game/soundEngine'
 
 export type AppMode = 'gate' | 'smash'
@@ -32,7 +28,6 @@ async function exitFullscreenQuietly(): Promise<void> {
 export default function App() {
   const [mode, setMode] = useState<AppMode>('gate')
   const [fullscreenDenied, setFullscreenDenied] = useState(false)
-  const [glyphMode, setGlyphMode] = useState<GlyphMode>(DEFAULT_GLYPH_MODE)
   const leavingRef = useRef(false)
 
   useEffect(() => {
@@ -75,23 +70,13 @@ export default function App() {
     void exitFullscreenQuietly()
   }, [])
 
-  const onCycleGlyphMode = useCallback(() => {
-    setGlyphMode((current) => cycleGlyphMode(current))
-  }, [])
-
   if (mode === 'smash') {
     return (
       <div className="smash-shell" data-fullscreen-denied={fullscreenDenied ? 'true' : 'false'}>
-        <SmashSurface onLeave={leaveSmash} glyphMode={glyphMode} />
+        <SmashSurface onLeave={leaveSmash} glyphMode={DEFAULT_GLYPH_MODE} />
       </div>
     )
   }
 
-  return (
-    <StartGate
-      onEnter={enterSmash}
-      glyphMode={glyphMode}
-      onCycleGlyphMode={onCycleGlyphMode}
-    />
-  )
+  return <StartGate onEnter={enterSmash} />
 }

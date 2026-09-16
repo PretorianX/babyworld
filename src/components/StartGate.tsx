@@ -11,18 +11,12 @@ import {
   type ConstellationState,
 } from '../game/constellation'
 import { prefersReducedMotion } from '../game/ambientBackground'
-import {
-  glyphModeLabel,
-  type GlyphMode,
-} from '../game/glyphMode'
 
 type StartGateProps = {
   onEnter: () => void
-  glyphMode: GlyphMode
-  onCycleGlyphMode: () => void
 }
 
-export function StartGate({ onEnter, glyphMode, onCycleGlyphMode }: StartGateProps) {
+export function StartGate({ onEnter }: StartGateProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   useEffect(() => {
@@ -87,14 +81,6 @@ export function StartGate({ onEnter, glyphMode, onCycleGlyphMode }: StartGatePro
           key. Grown-ups type <strong>leave</strong> to get out.
         </p>
         <div className="start-gate__actions">
-          <button
-            type="button"
-            className="start-gate__mode"
-            onClick={onCycleGlyphMode}
-            aria-label={`Glyph mode: ${glyphModeLabel(glyphMode)}. Activate to cycle.`}
-          >
-            Glyphs: {glyphModeLabel(glyphMode)}
-          </button>
           <button type="button" className="start-gate__cta" onClick={onEnter}>
             Enter smash
           </button>
