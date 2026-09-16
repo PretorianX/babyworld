@@ -8,16 +8,18 @@ import {
   tickEngine,
   type CanvasEngine,
 } from '../game/canvasEngine'
+import type { GlyphMode } from '../game/glyphMode'
 import { createLeaveGuard, feedLeaveGuard, type LeaveGuardState } from '../game/leaveGuard'
 import { playKeySound, playPointerSound } from '../game/soundEngine'
 
 type SmashSurfaceProps = {
   onLeave: () => void
+  glyphMode: GlyphMode
 }
 
-export function SmashSurface({ onLeave }: SmashSurfaceProps) {
+export function SmashSurface({ onLeave, glyphMode }: SmashSurfaceProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const engineRef = useRef<CanvasEngine>(createCanvasEngine(1, 1))
+  const engineRef = useRef<CanvasEngine>(createCanvasEngine(1, 1, glyphMode))
   const leaveRef = useRef<LeaveGuardState>(createLeaveGuard())
   const onLeaveRef = useRef(onLeave)
 
@@ -32,7 +34,7 @@ export function SmashSurface({ onLeave }: SmashSurfaceProps) {
     if (!ctx) return
 
     leaveRef.current = createLeaveGuard()
-    engineRef.current = createCanvasEngine(window.innerWidth, window.innerHeight)
+    engineRef.current = createCanvasEngine(window.innerWidth, window.innerHeight, glyphMode)
 
     const fit = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR)
@@ -120,7 +122,7 @@ export function SmashSurface({ onLeave }: SmashSurfaceProps) {
       canvas.removeEventListener('pointerdown', onPointerDown)
       canvas.removeEventListener('contextmenu', blockContext)
     }
-  }, [])
+  }, [glyphMode])
 
   return (
     <canvas

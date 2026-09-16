@@ -39,11 +39,17 @@ button {
   padding: 2rem 1.25rem;
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(247, 148, 29, 0.28), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 80%, rgba(255, 222, 89, 0.18), transparent 50%),
-    linear-gradient(160deg, var(--duck2-bg) 0%, var(--duck2-surface) 55%, var(--duck2-bg) 100%);
+  background: #050505;
   color: var(--duck2-ink);
+}
+
+.start-gate__field {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .start-gate__glow {
@@ -53,15 +59,16 @@ button {
   height: min(520px, 90vw);
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(247, 148, 29, 0.35), transparent 70%);
-  filter: blur(8px);
-  animation: gate-pulse 4.5s ease-in-out infinite;
+  background: radial-gradient(circle, rgba(247, 148, 29, 0.18), transparent 70%);
+  filter: blur(12px);
+  animation: gate-pulse 9s ease-in-out infinite;
   pointer-events: none;
+  z-index: 1;
 }
 
 .start-gate__content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: min(560px, 100%);
   text-align: center;
   animation: gate-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -92,7 +99,7 @@ button {
 }
 
 .start-gate__tagline {
-  margin: 1.25rem auto 2rem;
+  margin: 1.25rem auto 1.5rem;
   max-width: 34ch;
   font-size: clamp(1rem, 2.6vw, 1.15rem);
   line-height: 1.55;
@@ -102,6 +109,37 @@ button {
 .start-gate__tagline strong {
   color: var(--duck-yellow);
   font-weight: 700;
+}
+
+.start-gate__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.start-gate__mode {
+  appearance: none;
+  border: 1px solid rgba(255, 222, 89, 0.35);
+  cursor: pointer;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-pill);
+  background: rgba(27, 38, 59, 0.72);
+  color: var(--duck2-ink);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.start-gate__mode:hover {
+  border-color: var(--duck-yellow);
+  background: rgba(27, 38, 59, 0.9);
+}
+
+.start-gate__mode:focus-visible {
+  outline: 3px solid var(--duck-orange);
+  outline-offset: 3px;
 }
 
 .start-gate__cta {
@@ -141,7 +179,7 @@ button {
   width: 100%;
   height: 100dvh;
   overflow: hidden;
-  background: var(--duck2-bg);
+  background: #050505;
   cursor: none;
   user-select: none;
   -webkit-user-select: none;
@@ -186,12 +224,25 @@ body.smash-active {
 @keyframes gate-pulse {
   0%,
   100% {
-    opacity: 0.55;
-    transform: translateX(-50%) scale(0.96);
+    opacity: 0.35;
+    transform: translateX(-50%) scale(0.98);
   }
   50% {
-    opacity: 0.9;
-    transform: translateX(-50%) scale(1.05);
+    opacity: 0.55;
+    transform: translateX(-50%) scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .start-gate__glow,
+  .start-gate__content,
+  .start-gate__brand {
+    animation: none;
+  }
+
+  .start-gate__cta,
+  .start-gate__mode {
+    transition: none;
   }
 }
 

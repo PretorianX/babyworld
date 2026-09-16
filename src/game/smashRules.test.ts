@@ -2,15 +2,21 @@ import { describe, expect, it, vi } from 'vitest'
 import { feedLeaveGuard, createLeaveGuard } from './leaveGuard'
 import { soundProfileForKey } from './soundProfile'
 import { createKeyEffect } from './effects'
+import { GLYPH_EMOJI } from './glyphMode'
 
 describe('smash integration helpers', () => {
   it('produces a visual effect for every key including leave letters and repeats', () => {
     const keys = ['a', 'l', 'e', 'a', 'v', 'e', 'Enter', 'Shift']
     keys.forEach((key, index) => {
-      const effect = createKeyEffect(100, 120, key, index)
+      const effect = createKeyEffect(100, 120, key, index, 'mixed')
       expect(effect.glyph.text.length).toBeGreaterThan(0)
       expect(effect.particles.length).toBeGreaterThan(0)
     })
+  })
+
+  it('respects emoji glyph mode for smash bursts', () => {
+    const effect = createKeyEffect(40, 50, 'q', 0, 'emoji')
+    expect(GLYPH_EMOJI.includes(effect.glyph.text as (typeof GLYPH_EMOJI)[number])).toBe(true)
   })
 
   it('maps a sound profile for leave letters and repeats alike', () => {

@@ -1,3 +1,4 @@
+import { pickGlyphText, type GlyphMode } from './glyphMode'
 import { createBurst, paletteColors, type PaletteId, type Particle } from './particles'
 
 export type Glyph = {
@@ -14,9 +15,6 @@ export type Glyph = {
   color: string
 }
 
-const EMOJI = ['🦆', '⭐', '💥', '🎈', '🧸', '🌈', '🍌', '🐸', '💫', '🎪']
-const SHAPES = ['●', '■', '▲', '◆', '★', '✚', '✦']
-
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)]
 }
@@ -25,10 +23,8 @@ export function nextPalette(burstIndex: number): PaletteId {
   return burstIndex % 2 === 0 ? 'duck-night' : 'daydream'
 }
 
-export function glyphTextForKey(key: string): string {
-  if (key.length === 1 && key.trim() !== '') return key.toUpperCase()
-  if (Math.random() < 0.45) return pick(EMOJI)
-  return pick(SHAPES)
+export function glyphTextForKey(key: string, mode: GlyphMode = 'mixed'): string {
+  return pickGlyphText(mode, key)
 }
 
 export function createGlyph(
@@ -57,11 +53,12 @@ export function createKeyEffect(
   y: number,
   key: string,
   burstIndex: number,
+  glyphMode: GlyphMode = 'mixed',
 ): { glyph: Glyph; particles: Particle[]; palette: PaletteId } {
   const palette = nextPalette(burstIndex)
   return {
     palette,
-    glyph: createGlyph(x, y, glyphTextForKey(key), palette),
+    glyph: createGlyph(x, y, glyphTextForKey(key, glyphMode), palette),
     particles: createBurst(x, y, palette),
   }
 }
@@ -94,14 +91,4 @@ export function drawGlyph(ctx: CanvasRenderingContext2D, glyph: Glyph): void {
   ctx.textBaseline = 'middle'
   ctx.fillText(glyph.text, 0, 0)
   ctx.restore()
-}
-
-export function backgroundForPalette(palette: PaletteId): {
-  background: string
-  backgroundAlt: string
-} {
-  if (palette === 'daydream') {
-    return { background: '#fff8e7', backgroundAlt: '#ffe9b5' }
-  }
-  return { background: '#0d1b2a', backgroundAlt: '#1b263b' }
 }

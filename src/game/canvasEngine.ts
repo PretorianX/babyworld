@@ -1,10 +1,18 @@
 import {
-  backgroundForPalette,
-  createKeyEffect,
-  drawGlyph,
-  stepGlyph,
-  type Glyph,
-} from './effects'
+  AMBIENT_CYCLE_SECONDS,
+  ambientBackground,
+  prefersReducedMotion,
+} from './ambientBackground'
+import {
+  createConstellation,
+  drawConstellation,
+  paintFieldBase,
+  resizeConstellation,
+  stepConstellation,
+  type ConstellationState,
+} from './constellation'
+import { createKeyEffect, drawGlyph, stepGlyph, type Glyph } from './effects'
+import type { GlyphMode } from './glyphMode'
 import {
   MAX_PARTICLES,
   drawParticle,
@@ -18,22 +26,37 @@ export type CanvasEngine = {
   glyphs: Glyph[]
   particles: Particle[]
   burstIndex: number
-  activePalette: ReturnType<typeof backgroundForPalette> & { id: 'duck-night' | 'daydream' }
+  elapsed: number
+  reducedMotion: boolean
+  constellation: ConstellationState
+  glyphMode: GlyphMode
 }
 
-export function createCanvasEngine(width: number, height: number): CanvasEngine {
+export function createCanvasEngine(
+  width: number,
+  height: number,
+  glyphMode: GlyphMode = 'mixed',
+): CanvasEngine {
   return {
     width,
     height,
     glyphs: [],
     particles: [],
     burstIndex: 0,
-    activePalette: { id: 'duck-night', ...backgroundForPalette('duck-night') },
+    elapsed: 0,
+    reducedMotion: prefersReducedMotion(),
+    constellation: createConstellation(width, height),
+    glyphMode,
   }
 }
 
 export function resizeEngine(engine: CanvasEngine, width: number, height: number): CanvasEngine {
-  return { ...engine, width, height }
+  return {
+    ...engine,
+    width,
+    height,
+    constellation: resizeConstellation(engine.constellation, width, height),
+  }
 }
 
 export function smashEngine(
@@ -42,20 +65,22 @@ export function smashEngine(
   y: number,
   key: string,
 ): CanvasEngine {
-  const effect = createKeyEffect(x, y, key, engine.burstIndex)
+  const effect = createKeyEffect(x, y, key, engine.burstIndex, engine.glyphMode)
   const particles = [...engine.particles, ...effect.particles].slice(-MAX_PARTICLES)
   return {
     ...engine,
     burstIndex: engine.burstIndex + 1,
     glyphs: [...engine.glyphs, effect.glyph],
     particles,
-    activePalette: { id: effect.palette, ...backgroundForPalette(effect.palette) },
   }
 }
 
 export function tickEngine(engine: CanvasEngine, dt: number): CanvasEngine {
+  const elapsed = engine.elapsed + dt
   return {
     ...engine,
+    elapsed,
+    constellation: stepConstellation(engine.constellation, 1, engine.reducedMotion),
     glyphs: engine.glyphs
       .map((glyph) => stepGlyph(glyph, dt))
       .filter((glyph): glyph is Glyph => glyph !== null),
@@ -66,11 +91,20 @@ export function tickEngine(engine: CanvasEngine, dt: number): CanvasEngine {
 }
 
 export function drawEngine(ctx: CanvasRenderingContext2D, engine: CanvasEngine): void {
-  const gradient = ctx.createLinearGradient(0, 0, engine.width, engine.height)
-  gradient.addColorStop(0, engine.activePalette.background)
-  gradient.addColorStop(1, engine.activePalette.backgroundAlt)
-  ctx.fillStyle = gradient
+  // Stable navy field + soft constellation — no night/day full-screen swap.
+  paintFieldBase(ctx, engine.width, engine.height)
+
+  const phase = (engine.elapsed % AMBIENT_CYCLE_SECONDS) / AMBIENT_CYCLE_SECONDS
+  const wash = ambientBackground(phase, engine.reducedMotion)
+  const veil = ctx.createLinearGradient(0, 0, engine.width, engine.height)
+  veil.addColorStop(0, wash.background)
+  veil.addColorStop(1, wash.backgroundAlt)
+  ctx.globalAlpha = 0.35
+  ctx.fillStyle = veil
   ctx.fillRect(0, 0, engine.width, engine.height)
+  ctx.globalAlpha = 1
+
+  drawConstellation(ctx, engine.constellation)
 
   for (const particle of engine.particles) {
     drawParticle(ctx, particle)

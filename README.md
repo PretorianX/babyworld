@@ -18,10 +18,13 @@ docker compose down
 
 ## Controls
 
+- On the start gate, tap **Glyphs** to cycle `letters | emoji | mixed` (default mixed).
 - Tap **Enter smash** to start (requests fullscreen and unlocks audio).
 - Mash the keyboard or tap the screen for glyphs, particles, and silly tones.
 - Type **leave** (letters within about 4 seconds) to return to the start gate.
 - Escape may end native fullscreen; the smash surface stays up until `leave`.
+
+Ambient backdrop is a calm MailDuck-colored particle network (navy field, orange/yellow links) — no full-screen palette strobing.
 
 ## Quality checks (development)
 
