@@ -157,11 +157,13 @@ export function DollStage({ onLeave, onReclaim }: DollStageProps) {
 
       <div className="doll-stage__arena" aria-live="polite">
         <AuroraCanvas ref={auroraRef} />
-        <EarthGlobe
-          rotationDeg={earthRotationDeg}
-          className="doll-stage__globe"
-        />
-        <BoyDoll pose={pose} outfit={outfit} expression={expression} className="doll-stage__doll" />
+        <div className="doll-stage__world">
+          <EarthGlobe
+            rotationDeg={earthRotationDeg}
+            className="doll-stage__globe"
+          />
+          <BoyDoll pose={pose} outfit={outfit} expression={expression} className="doll-stage__doll" />
+        </div>
         <div className="doll-stage__piano-overlay">
           <DollPiano onStrike={onPianoStrike} />
         </div>

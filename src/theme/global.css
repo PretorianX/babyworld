@@ -234,26 +234,40 @@ button {
   overflow: visible;
 }
 
+.doll-stage__world {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
 .doll-stage__globe {
   position: absolute;
-  /* Dominant planet — piano sits translucent on its face */
-  width: min(220vw, 1600px);
+  /* Bounded to viewport height so it doesn't explode on wide screens */
+  width: clamp(600px, 160vh, 2000px);
   height: auto;
-  left: 50%;
-  bottom: -62%;
-  transform: translateX(-50%);
+  /* SVG is a square. The top arc of the planet sits at 32.8% of the height above the center. 
+     Translating down by this amount puts the top arc exactly at the center (Y=0) */
+  transform: translateY(32.8%);
   z-index: 1;
   pointer-events: none;
   overflow: visible;
 }
 
 .doll-stage__doll {
-  position: relative;
-  width: min(220px, 52vw);
+  position: absolute;
+  /* Scales perfectly in tandem with the globe */
+  width: clamp(120px, 22vh, 260px);
   height: auto;
   z-index: 3;
-  /* Sit feet on the visible upper arc of the globe */
-  translate: 0 22%;
+  /* ViewBox height is 280. Feet are at ~Y=242. Center is 140. Feet are ~36.4% below center.
+     Translating up by this amount puts the feet exactly at the center (Y=0) */
+  transform: translateY(-36.4%);
   filter: drop-shadow(0 12px 18px rgba(5, 12, 20, 0.45));
   pointer-events: none;
 }
