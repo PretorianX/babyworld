@@ -13,10 +13,11 @@ import {
 import { prefersReducedMotion } from '../game/ambientBackground'
 
 type StartGateProps = {
-  onEnter: () => void
+  onEnterSmash: () => void
+  onEnterDoll: () => void
 }
 
-export function StartGate({ onEnter }: StartGateProps) {
+export function StartGate({ onEnterSmash, onEnterDoll }: StartGateProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   useEffect(() => {
@@ -77,12 +78,23 @@ export function StartGate({ onEnter }: StartGateProps) {
           Baby<span className="start-gate__brand-accent">World</span>
         </h1>
         <p className="start-gate__tagline">
-          Fullscreen keyboard smash for tiny fingers. Funny sounds on every
-          key. Grown-ups type <strong>leave</strong> to get out.
+          Fullscreen smash or a dancing doll with piano. Grown-ups type{' '}
+          <strong>leave</strong> to get out.
         </p>
         <div className="start-gate__actions">
-          <button type="button" className="start-gate__cta" onClick={onEnter}>
+          <button
+            type="button"
+            className="start-gate__cta"
+            onClick={onEnterSmash}
+          >
             Enter smash
+          </button>
+          <button
+            type="button"
+            className="start-gate__cta start-gate__cta--secondary"
+            onClick={onEnterDoll}
+          >
+            Doll
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { DollStage } from './components/DollStage'
 import { SmashSurface } from './components/SmashSurface'
 import { StartGate } from './components/StartGate'
 import {
@@ -9,7 +10,11 @@ import { DEFAULT_GLYPH_MODE } from './game/glyphMode'
 import { lockSmashKeys, unlockSmashKeys } from './game/keyboardLock'
 import { resumeAudio } from './game/soundEngine'
 
-export type AppMode = 'gate' | 'smash'
+export type AppMode = 'gate' | 'smash' | 'doll'
+
+function isImmersive(mode: AppMode): boolean {
+  return mode === 'smash' || mode === 'doll'
+}
 
 async function requestFullscreen(): Promise<'ok' | 'denied'> {
   if (document.fullscreenElement) return 'ok'
@@ -31,12 +36,9 @@ async function exitFullscreenQuietly(): Promise<void> {
 }
 
 /**
- * Enter immersive smash: CSS shell always covers the viewport; native
+ * Enter immersive activity: CSS shell always covers the viewport; native
  * fullscreen is an enhancement. Keyboard Lock (Chromium) holds single Esc
- * presses while fullscreen. When fullscreen is lost anyway (Safari has no
- * Keyboard Lock; Chromium press-and-hold Esc always exits), we reclaim it —
- * immediately in the fullscreenchange handler when the browser still has
- * transient activation, otherwise on the next key/pointer gesture.
+ * presses while fullscreen. Exit only by typing `leave`.
  */
 export default function App() {
   const [mode, setMode] = useState<AppMode>('gate')
@@ -44,7 +46,7 @@ export default function App() {
   const leavingRef = useRef(false)
 
   useEffect(() => {
-    if (mode !== 'smash') return
+    if (!isImmersive(mode)) return
 
     document.body.classList.add('smash-active')
     document.documentElement.classList.add('smash-active')
@@ -68,7 +70,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (mode !== 'smash') return
+    if (!isImmersive(mode)) return
 
     const onFullscreenChange = () => {
       const action = onSmashFullscreenChange({
@@ -76,8 +78,6 @@ export default function App() {
         leaving: leavingRef.current,
       })
       if (action === 'relock') {
-        // Chromium only honors the Esc lock while fullscreen — re-engage on
-        // every entry so the lock survives fullscreen round-trips.
         void lockSmashKeys()
       } else if (action === 'reclaim') {
         reclaimFullscreen()
@@ -89,22 +89,20 @@ export default function App() {
       document.removeEventListener('fullscreenchange', onFullscreenChange)
   }, [mode, reclaimFullscreen])
 
-  const enterSmash = useCallback(() => {
+  const enterImmersive = useCallback((next: 'smash' | 'doll') => {
     leavingRef.current = false
     void resumeAudio()
-    // Mount CSS immersive shell immediately — never wait on fullscreen.
-    setMode('smash')
+    setMode(next)
     void requestFullscreen().then(async (result) => {
       if (leavingRef.current) return
       if (result === 'denied') {
         setFullscreenDenied(true)
       }
-      // Keyboard Lock requires a user gesture + (typically) fullscreen in Chromium.
       await lockSmashKeys()
     })
   }, [])
 
-  const leaveSmash = useCallback(() => {
+  const leaveImmersive = useCallback(() => {
     leavingRef.current = true
     unlockSmashKeys()
     setFullscreenDenied(false)
@@ -120,7 +118,7 @@ export default function App() {
         data-immersive="css"
       >
         <SmashSurface
-          onLeave={leaveSmash}
+          onLeave={leaveImmersive}
           onReclaim={reclaimFullscreen}
           glyphMode={DEFAULT_GLYPH_MODE}
         />
@@ -128,5 +126,22 @@ export default function App() {
     )
   }
 
-  return <StartGate onEnter={enterSmash} />
+  if (mode === 'doll') {
+    return (
+      <div
+        className="smash-shell doll-shell"
+        data-fullscreen-denied={fullscreenDenied ? 'true' : 'false'}
+        data-immersive="css"
+      >
+        <DollStage onLeave={leaveImmersive} onReclaim={reclaimFullscreen} />
+      </div>
+    )
+  }
+
+  return (
+    <StartGate
+      onEnterSmash={() => enterImmersive('smash')}
+      onEnterDoll={() => enterImmersive('doll')}
+    />
+  )
 }

@@ -115,6 +115,7 @@ button {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  gap: 0.75rem;
   width: 100%;
   margin-top: 0.35rem;
 }
@@ -158,6 +159,187 @@ button {
 .start-gate__cta:active {
   transform: translateY(0) scale(0.985);
   animation: none;
+}
+
+.start-gate__cta--secondary {
+  border-color: var(--duck-orange);
+  background: var(--duck2-surface);
+  color: var(--duck-yellow);
+  box-shadow: 0 10px 28px rgba(13, 27, 42, 0.55);
+  animation: none;
+}
+
+.start-gate__cta--secondary:hover {
+  background: #243447;
+  box-shadow:
+    0 0 0 4px rgba(255, 222, 89, 0.16),
+    0 14px 32px rgba(13, 27, 42, 0.6);
+}
+
+.doll-stage {
+  isolation: isolate;
+  height: 100%;
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+  background: transparent;
+  color: var(--duck2-ink);
+  position: relative;
+  overflow: hidden;
+  cursor: auto;
+  touch-action: manipulation;
+}
+
+.starfield-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.doll-shell {
+  cursor: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.doll-stage__header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.doll-stage__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  color: var(--duck-orange);
+}
+
+.doll-stage__arena {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  /* Allow rim trees/clouds to paint above the globe without a hard crop */
+  overflow: visible;
+}
+
+.doll-stage__globe {
+  position: absolute;
+  /* Dominant planet — piano sits translucent on its face */
+  width: min(220vw, 1600px);
+  height: auto;
+  left: 50%;
+  bottom: -62%;
+  transform: translateX(-50%);
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.doll-stage__doll {
+  position: relative;
+  width: min(220px, 52vw);
+  height: auto;
+  z-index: 3;
+  /* Sit feet on the visible upper arc of the globe */
+  translate: 0 22%;
+  filter: drop-shadow(0 12px 18px rgba(5, 12, 20, 0.45));
+  pointer-events: none;
+}
+
+.doll-stage__piano-overlay {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 6%;
+  transform: translateX(-50%);
+  width: min(92vw, 640px);
+  pointer-events: none;
+}
+
+.doll-piano {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  touch-action: manipulation;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.doll-piano__keys {
+  display: block;
+  width: 100%;
+  max-height: 7rem;
+  overflow: visible;
+  filter: drop-shadow(0 8px 18px rgba(5, 12, 20, 0.35));
+}
+
+.doll-piano__white {
+  fill: rgba(244, 247, 251, 0.28);
+  stroke: rgba(227, 242, 253, 0.55);
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+}
+
+.doll-piano__white--active {
+  fill: rgba(255, 222, 89, 0.7);
+  stroke: rgba(255, 222, 89, 0.9);
+  filter: drop-shadow(0 0 10px rgba(255, 222, 89, 0.9));
+  transition: none;
+}
+
+.doll-piano__black {
+  fill: rgba(10, 18, 28, 0.45);
+  stroke: rgba(227, 242, 253, 0.35);
+  stroke-width: 1;
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+}
+
+.doll-piano__black--active {
+  fill: rgba(247, 148, 29, 0.8);
+  stroke: rgba(255, 222, 89, 0.85);
+  filter: drop-shadow(0 0 10px rgba(247, 148, 29, 0.9));
+  transition: none;
+}
+
+.doll-piano__label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 9px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.doll-piano__label--white {
+  fill: rgba(227, 242, 253, 0.92);
+}
+
+.doll-piano__label--black {
+  fill: rgba(255, 222, 89, 0.95);
+  font-size: 8px;
+}
+
+@media (min-width: 640px) {
+  .doll-piano__keys {
+    max-height: 8rem;
+  }
+
+  .doll-piano__label {
+    font-size: 10px;
+  }
 }
 
 /* CSS immersive lock-in: covers the window even if native fullscreen drops.
