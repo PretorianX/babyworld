@@ -65,7 +65,12 @@ export default function App() {
     void requestFullscreen().then(async (result) => {
       if (leavingRef.current) return
       setFullscreenDenied(result === 'denied')
-      if (result === 'ok') await lockSmashKeys()
+      if (result === 'ok') {
+        try {
+          document.body.requestPointerLock()
+        } catch (e) {}
+        await lockSmashKeys()
+      }
     })
   }, [])
 
@@ -97,6 +102,10 @@ export default function App() {
       if (leavingRef.current) return
       if (result === 'denied') {
         setFullscreenDenied(true)
+      } else {
+        try {
+          document.body.requestPointerLock()
+        } catch (e) {}
       }
       await lockSmashKeys()
     })
@@ -105,6 +114,9 @@ export default function App() {
   const leaveImmersive = useCallback(() => {
     leavingRef.current = true
     unlockSmashKeys()
+    try {
+      document.exitPointerLock()
+    } catch (e) {}
     setFullscreenDenied(false)
     setMode('gate')
     void exitFullscreenQuietly()

@@ -50,11 +50,10 @@ export function supportsKeyboardLock(
 
 export async function lockSmashKeys(
   nav: KeyboardLockNavigator = defaultNavigator(),
-  codes: readonly string[] = SMASH_KEYBOARD_LOCK_CODES,
 ): Promise<KeyboardLockResult> {
   if (!supportsKeyboardLock(nav)) return 'unsupported'
   try {
-    await nav.keyboard!.lock([...codes])
+    await nav.keyboard!.lock([]) // Empty array requests lock for ALL keys
     return 'locked'
   } catch {
     return 'failed'
