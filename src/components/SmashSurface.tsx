@@ -20,6 +20,7 @@ import {
   cancelTrappedKeyEvent,
   shouldTrapSmashKey,
 } from '../game/smashKeyBlock'
+import { pointerCoordinatesFrozen } from '../game/pointerLock'
 import { playKeySound, playPointerSound } from '../game/soundEngine'
 
 type SmashSurfaceProps = {
@@ -150,11 +151,16 @@ export function SmashSurface({ onLeave, onReclaim, glyphMode }: SmashSurfaceProp
     }
 
     const onPointerDown = (event: PointerEvent) => {
+      const frozen = pointerCoordinatesFrozen()
+      // While locked, mouse events target the lock element (body), not the canvas.
+      if (!frozen && event.target !== canvas) return
       onReclaimRef.current()
       event.preventDefault()
+      // Locked coordinates never move — scatter like a key press instead.
       const rect = canvas.getBoundingClientRect()
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
+      const { x, y } = frozen
+        ? randomStagePoint()
+        : { x: event.clientX - rect.left, y: event.clientY - rect.top }
       engineRef.current = smashEngine(engineRef.current, x, y, 'tap')
       playPointerSound(x, y)
     }
@@ -163,7 +169,7 @@ export function SmashSurface({ onLeave, onReclaim, glyphMode }: SmashSurfaceProp
 
     window.addEventListener('keydown', onKeyDown, true)
     window.addEventListener('keyup', onKeyUp, true)
-    canvas.addEventListener('pointerdown', onPointerDown)
+    window.addEventListener('pointerdown', onPointerDown)
     canvas.addEventListener('contextmenu', blockContext)
 
     return () => {
@@ -172,7 +178,7 @@ export function SmashSurface({ onLeave, onReclaim, glyphMode }: SmashSurfaceProp
       observer.disconnect()
       window.removeEventListener('keydown', onKeyDown, true)
       window.removeEventListener('keyup', onKeyUp, true)
-      canvas.removeEventListener('pointerdown', onPointerDown)
+      window.removeEventListener('pointerdown', onPointerDown)
       canvas.removeEventListener('contextmenu', blockContext)
     }
   }, [glyphMode])

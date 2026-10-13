@@ -8,6 +8,7 @@ import {
 } from './game/fullscreenGuard'
 import { DEFAULT_GLYPH_MODE } from './game/glyphMode'
 import { lockSmashKeys, unlockSmashKeys } from './game/keyboardLock'
+import { lockPointer, unlockPointer } from './game/pointerLock'
 import { resumeAudio } from './game/soundEngine'
 
 export type AppMode = 'gate' | 'smash' | 'doll'
@@ -66,9 +67,7 @@ export default function App() {
       if (leavingRef.current) return
       setFullscreenDenied(result === 'denied')
       if (result === 'ok') {
-        try {
-          document.body.requestPointerLock()
-        } catch (e) {}
+        lockPointer()
         await lockSmashKeys()
       }
     })
@@ -103,9 +102,7 @@ export default function App() {
       if (result === 'denied') {
         setFullscreenDenied(true)
       } else {
-        try {
-          document.body.requestPointerLock()
-        } catch (e) {}
+        lockPointer()
       }
       await lockSmashKeys()
     })
@@ -114,9 +111,7 @@ export default function App() {
   const leaveImmersive = useCallback(() => {
     leavingRef.current = true
     unlockSmashKeys()
-    try {
-      document.exitPointerLock()
-    } catch (e) {}
+    unlockPointer()
     setFullscreenDenied(false)
     setMode('gate')
     void exitFullscreenQuietly()
